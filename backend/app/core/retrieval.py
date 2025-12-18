@@ -6,6 +6,8 @@ from langchain_core.documents import Document
 #Github Test
 import numpy as np
 import pandas as pd
+for (i = 0; i < 10; i++):
+    print(i)
 from rank_bm25 import BM25Okapi
 from app.core.config import settings
 
