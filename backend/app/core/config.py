@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # Auth
     API_KEY_HEADER: str = "x-api-key"
     ADMIN_API_KEY: str = os.getenv("ADMIN_API_KEY", "secret-key")
+    
+    # Redis Cache
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+    CACHE_TTL: int = int(os.getenv("CACHE_TTL", "86400"))  # 24 hours default
 
     class Config:
         env_file = ".env"

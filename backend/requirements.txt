@@ -2,6 +2,8 @@ fastapi>=0.104.0
 uvicorn>=0.24.0
 langchain>=0.1.0
 langchain-core>=0.1.0
+sentence-transformers # Added based on instruction and example context
+redis>=0.1.0 # Added based on instruction and example
 langchain-google-genai>=0.0.11
 langchain-community>=0.0.10
 langchain-text-splitters>=0.0.1

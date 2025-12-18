@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.core.ingestion import ingestion_manager
 from app.core.retrieval import retriever
 from app.core.generation import get_rag_engine
+from app.core.cache import get_cache
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -90,11 +91,24 @@ async def query_endpoint(request: QueryRequest):
 
         return StreamingResponse(event_generator(), media_type="application/x-ndjson")
     else:
+        # Check cache first (only for non-streaming)
+        cache = get_cache()
+        cached_response = cache.get(request.query, request.top_k)
+        if cached_response:
+            logger.info(f"Returning cached response for: {request.query[:50]}...")
+            return cached_response
+        
         try:
             answer = await get_rag_engine().generate(request.query, docs, stream=False)
+            sources = [{"chunk_id": d.metadata.get("chunk_id"), "snippet": d.metadata.get("original_text_snippet"), "score": d.metadata.get("score")} for d in docs]
+            
+            # Cache the response
+            cache.set(request.query, request.top_k, answer, sources)
+            
             return {
                 "answer": answer,
-                "sources": [{"chunk_id": d.metadata.get("chunk_id"), "snippet": d.metadata.get("original_text_snippet"), "score": d.metadata.get("score")} for d in docs]
+                "sources": sources,
+                "cached": False
             }
         except Exception as e:
             logger.error(f"Generation failed: {e}")
@@ -129,3 +143,11 @@ async def get_metadata(chunk_id: str):
                 return record
     
     raise HTTPException(status_code=404, detail="Chunk not found")
+
+@router.post("/cache/clear")
+async def clear_cache(api_key: str = Depends(verify_api_key)):
+    """Clear all cached query responses (admin only)."""
+    cache = get_cache()
+    cleared = cache.clear()
+    return {"status": "success", "cleared_entries": cleared}
+

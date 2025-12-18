@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   backend:
     build: ./backend
     ports:
@@ -12,6 +20,9 @@ services:
     environment:
       - DATA_DIR=/data
       - KNOWLEDGE_FILE=uffizio_knowledge.txt
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
 
   frontend:
     build: ./frontend
@@ -19,3 +30,6 @@ services:
       - "3000:80"
     depends_on:
       - backend
+
+volumes:
+  redis_data:
