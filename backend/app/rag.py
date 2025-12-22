@@ -5,7 +5,10 @@ from typing import List, Tuple
 from fastapi import FastAPI, Request, Header, HTTPException
 import gitlab
 from openai import OpenAI
-
+import numpy as np
+import pandas as pd
+import logging as log
+import os
 # -------------------- CONFIG --------------------
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
